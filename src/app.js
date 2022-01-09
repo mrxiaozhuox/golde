@@ -15,18 +15,30 @@ setInterval(function() {
     }
 
     var data = JSON.parse(value);
+    var results = JSON.parse(document.getElementById("GoldeEventResultForm").value);
 
-    if (data != {}) {
-        for (const key in data) {
+    for (const key in data) {
 
-            var args = JSON.stringify(data[key]);
+        var args = data[key];
 
-            var argument = "";
-            for (const index in args) {
-                argument += args[index] + ",";
+        var argument = "";
+        for (const index in args) {
+            for (const type in args[index]) {
+                argument += args[index][type] + ",";
             }
-
-            eval(key + "(" + argument + ")");
         }
+
+        results[key] = eval(key + "(" + argument.substring(0, argument.length - 1) + ")");
     }
-}, 250);
+
+    if (Object.keys(results).length > 1) {
+        console.log(results);
+        document.getElementById("GoldeEventResultForm").value = JSON.stringify(results);
+        document.getElementById("GoldeEventResultSubmit").click();
+    }
+
+}, 100);
+
+document.getElementById("GoldeEventResultForm").onsubmit = function() {
+    return false;
+}

@@ -13,13 +13,14 @@ fn app(cx: Scope) -> Element {
         App {
             button {
                 onclick: move |_| {
-                    trigger(&cx, "add", vec![
-                        Value::Number(1),
-                        Value::Number(2),
+                    let res = trigger(&cx, "add", vec![
+                        Value::Number(1.0),
+                        Value::Number(2.0),
                     ]);
+                    println!("{:?}", res);
                 }
             }
-            script { [include_str!("./scripts/calc.js")] }
+            script { [include_str!("./demo.js")] }
         }
     ))
 }
