@@ -9,19 +9,18 @@ fn main() {
 static RESULT: Atom<f64> = |_| 0.0;
 
 fn app(cx: Scope) -> Element {
-
     init_app(&cx);
 
     let a = use_state(&cx, || 0.0);
     let b = use_state(&cx, || 0.0);
 
     let res = use_read(&cx, RESULT);
-    
+
     let setter = use_set(&cx, RESULT).clone();
 
     cx.render(rsx!(
         App {
-            trigger: makec!(
+            trigger: trigger!(
                 test => move |_, v| {
                     setter(v.as_number().unwrap_or(0.0));
                 }
@@ -38,7 +37,7 @@ fn app(cx: Scope) -> Element {
                     data.value.parse::<f64>().unwrap_or(0.0)
                 )
             }
-            button {  
+            button {
                 onclick: move |_| {
                     let code = format!("{} + {}", &a, &b);
                     execute(&cx, "test", code.to_string());

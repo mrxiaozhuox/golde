@@ -30,8 +30,8 @@ fn app(cx: Scope) -> Element {
 
     cx.render(rsx!(
         App {
-            collector: makec!(
-                "test".into() => move |_, v| {
+            trigger: trigger!(
+                test => move |_, v| {
                     setter(v.as_number().unwrap_or(0.0));
                 }
             ),

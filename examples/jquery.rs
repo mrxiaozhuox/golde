@@ -6,12 +6,11 @@ fn main() {
 }
 
 fn app(cx: Scope) -> Element {
-
     init_app(&cx);
 
     cx.render(rsx!(
         App {
-            trigger: makec!(
+            trigger: trigger!(
                 jquery_test => |_, v| {
                     println!("{:?}", v);
                 }

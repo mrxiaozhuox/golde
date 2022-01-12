@@ -10,7 +10,7 @@ fn app(cx: Scope) -> Element {
 
     cx.render(rsx!(
         App {
-            trigger: makec!(
+            trigger: trigger!(
                 val_dict => | _, v | {
                     println!("{:?}", v);
                 },
