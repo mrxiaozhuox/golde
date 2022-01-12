@@ -1,11 +1,14 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
+use fermi::{Atom, use_read};
 use golde::*;
 
 fn main() {
     dioxus::desktop::launch(app)
 }
+
+static RESULT: Atom<f64> = |_| 0.0;
 
 fn app(cx: Scope) -> Element {
 
@@ -16,11 +19,11 @@ fn app(cx: Scope) -> Element {
     let a = use_state(&cx, || 0.0);
     let b = use_state(&cx, || 0.0);
 
-    let res = use_state(&cx, || 0.0);
+    let res = use_read(&cx, RESULT);
 
     let mut collector: Collector = HashMap::new();
-    collector.insert("golde@init".into(), Box::new(|v| {
-        println!("{:?}",v);
+    collector.insert("test".into(), Box::new(|v| {
+        println!("RESULT {:?}", v);
     }));
 
     cx.render(rsx!(

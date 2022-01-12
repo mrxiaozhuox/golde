@@ -19,7 +19,7 @@ pub struct AppProps<'a> {
     collector: Collector,
 }
 
-static GOLDE_EVENT_QUEUE: Atom<map::Map<String, (String, DataValue)>> = |_| map::Map::new();
+static GOLDE_EVENT_QUEUE: Atom<map::Map<String, event::Event>> = |_| map::Map::new();
 
 pub fn init_app(cx: &Scope) { use_init_atom_root(cx); }
 
@@ -28,10 +28,10 @@ pub fn call(cx: &Scope, name: &str, code: String) {
     
     let mut golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE).clone();
 
-    golde_event_queue.set(name.to_string(), (
-        code.clone(),
-        DataValue::None,
-    ));
+    golde_event_queue.set(name.to_string(), event::Event {
+        code,
+        result: DataValue::None,
+    });
 
     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
     setter(golde_event_queue);
@@ -42,14 +42,21 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
     // this var will 
     let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
 
-    for (name, data) in &golde_event_queue.inner {
-        if data.1 != DataValue::None {
-            let callback = cx.props.collector.get(name);
-            if let Some(fun) = callback {
-                fun(data.1.clone());
+    if golde_event_queue.len() > 0 {
+        let mut new_event_queue: map::Map<String, event::Event> = map::Map::new();
+
+        for (name, data) in &golde_event_queue.inner {
+            if data.result != DataValue::None {
+                let callback = cx.props.collector.get(name);
+                if let Some(fun) = callback {
+                    fun(data.result.clone());
+                }
+                new_event_queue.set(name.clone(), event::Event { code: data.code.clone(), result: DataValue::None });
             }
         }
-        println!("SB");
+
+        let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
+        setter(new_event_queue);
     }
 
     cx.render(rsx!(
@@ -59,8 +66,14 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
             form {
                 id: "GoldeEventQueue",
                 "value": "{golde_event_queue}",
-                onsubmit: |data| {
-                    println!("{:?}", data);
+                onsubmit: move |data| {
+                    let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
+                    setter(map::Map {
+                        inner: serde_json::from_str::
+                        <HashMap<String, event::Event>>
+                        (&data.value).unwrap()
+                    });
+                    // println!("{:?}", use_read(&cx,GOLDE_EVENT_QUEUE));
                 },
                 button {
                     id: "GoldeEventQueueSubmit",

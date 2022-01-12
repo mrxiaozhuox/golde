@@ -1,6 +1,6 @@
 use std::{collections::HashMap, fmt::{Display, Debug}, hash::Hash};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct Map<K, V> {
     pub(crate) inner: HashMap<K, V>
 }
@@ -21,6 +21,8 @@ impl<K: Eq + Hash, V> Map<K, V> {
         return self.inner.get(&k);
     }
 
+    pub fn len(&self) -> usize { self.inner.len() }
+
 }
 
 impl<K, V> Display for Map<K, V> 
@@ -32,7 +34,6 @@ where
         write!(f, "{}", serde_json::to_string(
             &self.inner
         ).unwrap_or("{}".to_string()))
-        // write!(f, "{:?}", self.inner)
     }
 }
 
