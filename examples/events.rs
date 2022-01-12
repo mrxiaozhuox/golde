@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use dioxus::prelude::*;
 use fermi::*;
 use golde::*;
@@ -18,17 +16,16 @@ fn app(cx: Scope) -> Element {
     let b = use_state(&cx, || 0.0);
 
     let res = use_read(&cx, RESULT);
-
-    let mut collector: Collector = HashMap::new();
     
     let setter = use_set(&cx, RESULT).clone();
-    collector.insert("test".into(), Box::new(move |_, v| {
-        setter(v.as_number().unwrap_or(0.0));
-    }));
 
     cx.render(rsx!(
         App {
-            collector: collector,
+            trigger: makec!(
+                test => move |_, v| {
+                    setter(v.as_number().unwrap_or(0.0));
+                }
+            ),
             input {
                 value: "{a}",
                 onchange: move |data| a.set(
@@ -44,7 +41,7 @@ fn app(cx: Scope) -> Element {
             button {  
                 onclick: move |_| {
                     let code = format!("{} + {}", &a, &b);
-                    call(&cx, "test", code.to_string());
+                    execute(&cx, "test", code.to_string());
                 },
                 "Calc"
             }

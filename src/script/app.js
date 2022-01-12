@@ -17,6 +17,7 @@ setInterval(function() {
         if (data.result == "None") {
             need_submit = true;
             var result = eval(data.code);
+            console.log(result);
             new_queue[key] = {
                 code: data.code,
                 result: dataValueParser(result),
@@ -38,6 +39,9 @@ document.getElementById("GoldeEventQueue").onsubmit = function() {
 }
 
 function dataValueParser(value) {
+
+    console.log(value);
+
     if (typeof value == "boolean") {
         return { "Boolesn": value };
     }
@@ -47,26 +51,39 @@ function dataValueParser(value) {
     if (typeof value == "string") {
         return { "String": value };
     }
-    if (typeof value == "undefined") {
-        return { "Number": 0 };
-    }
     if (typeof value == "object") {
+
         if (Array.isArray(value)) {
 
             var temp = [];
             for (const key in value) {
                 temp.push(dataValueParser(value[key]));
             }
-            return { "Array": temp };
+            return { "List": temp };
 
         } else {
 
-            var temp = {};
-            for (const key in value) {
-                temp[key] = dataValueParser(value[key]);
+            if (value === null) {
+                return { "String": "<Null>" };
             }
+
+            var temp = {};
+            Object.keys(value).map(key => {
+                temp[key] = dataValueParser(value[key]);
+            })
             return { "Dict": temp };
 
         }
     }
+
+    if (typeof value == "undefined") {
+        return { "String": "<Undefined>" };
+    }
+    if (typeof value == "function") {
+        return { "String": "<Function>" };
+    }
+    if (typeof value == "symbol") {
+        return { "String": "<Symbol>" };
+    }
+    return { "String": "<Unknown>" };
 }

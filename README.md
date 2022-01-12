@@ -7,8 +7,6 @@
 This demo can help use `Javascript` to calc the `+` operator formula.
 
 ```rust
-use std::collections::HashMap;
-
 use dioxus::prelude::*;
 use fermi::*;
 use golde::*;
@@ -27,17 +25,16 @@ fn app(cx: Scope) -> Element {
     let b = use_state(&cx, || 0.0);
 
     let res = use_read(&cx, RESULT);
-
-    let mut collector: Collector = HashMap::new();
     
     let setter = use_set(&cx, RESULT).clone();
-    collector.insert("test".into(), Box::new(move |_, v| {
-        setter(v.as_number().unwrap_or(0.0));
-    }));
 
     cx.render(rsx!(
         App {
-            collector: collector,
+            collector: makec!(
+                "test".into() => move |_, v| {
+                    setter(v.as_number().unwrap_or(0.0));
+                }
+            ),
             input {
                 value: "{a}",
                 onchange: move |data| a.set(

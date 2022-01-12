@@ -11,12 +11,22 @@ use fermi::{Atom, use_init_atom_root, use_read, use_set};
 // use once_cell::unsync::Lazy;
 
 pub type Value = DataValue;
-pub type Collector = HashMap<String, Box<dyn Fn(&Scope<AppProps>, DataValue) -> ()>>;
+pub type Trigger = HashMap<String, Box<dyn Fn(&Scope<AppProps>, DataValue) -> ()>>;
+
+
+#[macro_export]
+macro_rules! makec {
+    ($( $key: ident => $val: expr ),*) => {{
+         let mut map: Trigger = std::collections::HashMap::new();
+         $( map.insert(String::from(stringify!($key)), std::boxed::Box::new($val)); )*
+         map
+    }}
+}
 
 #[derive(Props)]
 pub struct AppProps<'a> {
     children: Element<'a>,
-    collector: Collector,
+    trigger: Trigger,
 }
 
 static GOLDE_EVENT_QUEUE: Atom<map::Map<String, event::Event>> = |_| map::Map::new();
@@ -24,7 +34,7 @@ static GOLDE_EVENT_QUEUE: Atom<map::Map<String, event::Event>> = |_| map::Map::n
 pub fn init_app(cx: &Scope) { use_init_atom_root(cx); }
 
 
-pub fn call(cx: &Scope, name: &str, code: String) {
+pub fn execute(cx: &Scope, name: &str, code: String) {
     
     let mut golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE).clone();
     golde_event_queue.set(name.to_string(), event::Event {
@@ -48,7 +58,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
 
         for (name, data) in &golde_event_queue.inner {
             if data.result != DataValue::None {
-                let callback = cx.props.collector.get(name);
+                let callback = cx.props.trigger.get(name);
                 if let Some(fun) = callback {
                     fun(&cx, data.result.clone());
                 }
