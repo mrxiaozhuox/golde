@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
-use fermi::{Atom, use_read, use_set};
+use fermi::*;
 use golde::*;
 
 fn main() {
