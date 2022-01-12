@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use dioxus::prelude::*;
-use fermi::{Atom, use_read};
+use fermi::{Atom, use_read, use_set};
 use golde::*;
 
 fn main() {
@@ -12,8 +12,6 @@ static RESULT: Atom<f64> = |_| 0.0;
 
 fn app(cx: Scope) -> Element {
 
-    // let mut app = GoldeApp::init_app(&cx);
-
     init_app(&cx);
 
     let a = use_state(&cx, || 0.0);
@@ -22,8 +20,10 @@ fn app(cx: Scope) -> Element {
     let res = use_read(&cx, RESULT);
 
     let mut collector: Collector = HashMap::new();
-    collector.insert("test".into(), Box::new(|v| {
-        println!("RESULT {:?}", v);
+    
+    let setter = use_set(&cx, RESULT).clone();
+    collector.insert("test".into(), Box::new(move |_, v| {
+        setter(v.as_number().unwrap_or(0.0));
     }));
 
     cx.render(rsx!(
@@ -43,12 +43,12 @@ fn app(cx: Scope) -> Element {
             }
             button {  
                 onclick: move |_| {
-                    call(&cx, "test", "1 + 1".to_string());
+                    let code = format!("{} + {}", &a, &b);
+                    call(&cx, "test", code.to_string());
                 },
-                "计算结果"
+                "Calc"
             }
-            span { "结果为: {res}" }
-            script { [include_str!("./demo.js")] }
+            p { "Result: {res}" }
         }
     ))
 }

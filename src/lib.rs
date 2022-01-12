@@ -11,7 +11,7 @@ use fermi::{Atom, use_init_atom_root, use_read, use_set};
 // use once_cell::unsync::Lazy;
 
 pub type Value = DataValue;
-pub type Collector = HashMap<String, Box<dyn Fn(DataValue) -> ()>>;
+pub type Collector = HashMap<String, Box<dyn Fn(&Scope<AppProps>, DataValue) -> ()>>;
 
 #[derive(Props)]
 pub struct AppProps<'a> {
@@ -27,36 +27,40 @@ pub fn init_app(cx: &Scope) { use_init_atom_root(cx); }
 pub fn call(cx: &Scope, name: &str, code: String) {
     
     let mut golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE).clone();
-
     golde_event_queue.set(name.to_string(), event::Event {
         code,
         result: DataValue::None,
     });
 
     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
-    setter(golde_event_queue);
+    setter(golde_event_queue.clone());
 }
 
 pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
 
-    // this var will 
     let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
 
     if golde_event_queue.len() > 0 {
-        let mut new_event_queue: map::Map<String, event::Event> = map::Map::new();
+
+        // here will call the callback function and return the result.
+        let mut new_event_queue: map::Map<String, event::Event> = golde_event_queue.clone();
+        let mut need_reload_queue: bool = false;
 
         for (name, data) in &golde_event_queue.inner {
             if data.result != DataValue::None {
                 let callback = cx.props.collector.get(name);
                 if let Some(fun) = callback {
-                    fun(data.result.clone());
+                    fun(&cx, data.result.clone());
                 }
-                new_event_queue.set(name.clone(), event::Event { code: data.code.clone(), result: DataValue::None });
+                need_reload_queue = true;
+                new_event_queue.inner.remove(name);
             }
         }
+        if need_reload_queue {
+            let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
+            setter(new_event_queue);
+        }
 
-        let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
-        setter(new_event_queue);
     }
 
     cx.render(rsx!(
@@ -73,7 +77,6 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
                         <HashMap<String, event::Event>>
                         (&data.value).unwrap()
                     });
-                    // println!("{:?}", use_read(&cx,GOLDE_EVENT_QUEUE));
                 },
                 button {
                     id: "GoldeEventQueueSubmit",

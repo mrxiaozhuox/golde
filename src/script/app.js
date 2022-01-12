@@ -25,12 +25,13 @@ setInterval(function() {
     }
 
     if (need_submit) {
+        // console.log("new submit: " + JSON.stringify(new_queue));
         document.getElementById("GoldeEventQueue").value = JSON.stringify(new_queue);
         document.getElementById("GoldeEventQueueSubmit").click();
     }
 
 
-}, 250);
+}, 100);
 
 document.getElementById("GoldeEventQueue").onsubmit = function() {
     return false;
