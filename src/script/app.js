@@ -6,8 +6,13 @@
 
 setInterval(function() {
 
-    var queue = document.getElementById("GoldeEventQueue").value;
-    var queue = JSON.parse(queue);
+    var queue = document.getElementById("GoldeEventQueue").getAttribute("value");
+        
+    try {
+        var queue = JSON.parse(queue);
+    } catch (error) {
+        var queue = {};
+    }
 
     var new_queue = {};
     var need_submit = false;
@@ -17,7 +22,6 @@ setInterval(function() {
         if (data.result == "None") {
             need_submit = true;
             var result = eval(data.code);
-            console.log(result);
             new_queue[key] = {
                 code: data.code,
                 result: dataValueParser(result),
@@ -26,22 +30,20 @@ setInterval(function() {
     }
 
     if (need_submit) {
-        // console.log("new submit: " + JSON.stringify(new_queue));
-        document.getElementById("GoldeEventQueue").value = JSON.stringify(new_queue);
+        console.log("new submit: " + JSON.stringify(new_queue));
+        document.getElementById("GoldeEventQueue").setAttribute("value", JSON.stringify(new_queue));
         document.getElementById("GoldeEventQueueSubmit").click();
     }
 
 
-}, 100);
+}, 200);
 
 document.getElementById("GoldeEventQueue").onsubmit = function() {
     return false;
 }
 
 function dataValueParser(value) {
-
-    console.log(value);
-
+    
     if (typeof value == "boolean") {
         return { "Boolesn": value };
     }
@@ -86,4 +88,8 @@ function dataValueParser(value) {
         return { "String": "<Symbol>" };
     }
     return { "String": "<Unknown>" };
+}
+
+function WebAssemblyGetResult() {
+    return document.getElementById("GoldeEventQueue").getAttribute("value");
 }

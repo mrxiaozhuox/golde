@@ -49,8 +49,19 @@ pub fn execute(cx: &Scope, name: &str, code: String) {
 }
 
 pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
-    let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
 
+    // check the runtime platform, now the `golde` just support WASM and Desktop
+    let wasm_runtime: bool;
+    if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
+        // runtime for wasm
+        wasm_runtime = true;
+    } else {
+        // default runtime
+        wasm_runtime = false;
+    }
+
+    let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
+    
     if golde_event_queue.len() > 0 {
         // here will call the callback function and return the result.
         let mut new_event_queue: map::Map<String, event::Event> = golde_event_queue.clone();
@@ -72,20 +83,41 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
         }
     }
 
+    let platform = format!("{}", if wasm_runtime { "WASM" } else { "Desktop" });
+    log::info!("Dioxus [Golde] Runtime Platform: {}", platform);
+
     cx.render(rsx!(
         div {
             id: "GoldeAppStatus",
             style: "display: none;",
+            "platform": "{platform}",
             form {
                 id: "GoldeEventQueue",
                 "value": "{golde_event_queue}",
                 onsubmit: move |data| {
+
+                    let mut queue = map::Map {
+                        inner: HashMap::new(),
+                    };
+
+                    if !wasm_runtime {
+                        queue = map::Map {
+                            inner: serde_json::from_str::
+                            <HashMap<String, event::Event>>
+                            (&data.value).unwrap()
+                        };
+                    } else {
+                        let r = WebAssemblyGetResult();
+                        queue = map::Map {
+                            inner: serde_json::from_str::
+                            <HashMap<String, event::Event>>
+                            (&r).unwrap()
+                        };
+                    }
+
                     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
-                    setter(map::Map {
-                        inner: serde_json::from_str::
-                        <HashMap<String, event::Event>>
-                        (&data.value).unwrap()
-                    });
+                    setter(queue);
+
                 },
                 button {
                     id: "GoldeEventQueueSubmit",
@@ -96,4 +128,10 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
         &cx.props.children,
         script { [include_str!("./script/app.js")] }
     ))
+}
+
+#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[wasm_bindgen::prelude::wasm_bindgen]
+extern "C" {
+    fn WebAssemblyGetResult() -> String;
 }
