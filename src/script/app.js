@@ -6,8 +6,12 @@
 
 setInterval(function() {
 
-    var queue = document.getElementById("GoldeEventQueue").getAttribute("value");
-        
+    if (platform == "WASM") {
+        var queue = document.getElementById("GoldeEventQueue").getAttribute("value");
+    } else {
+        var queue = document.getElementById("GoldeEventQueue").value;
+    }
+
     try {
         var queue = JSON.parse(queue);
     } catch (error) {
@@ -30,8 +34,12 @@ setInterval(function() {
     }
 
     if (need_submit) {
-        console.log("new submit: " + JSON.stringify(new_queue));
-        document.getElementById("GoldeEventQueue").setAttribute("value", JSON.stringify(new_queue));
+        if (platform == "WASM") {
+            document.getElementById("GoldeEventQueue").setAttribute("value", JSON.stringify(new_queue));
+        } else {
+            document.getElementById("GoldeEventQueue").value = JSON.stringify(new_queue);
+        }
+
         document.getElementById("GoldeEventQueueSubmit").click();
     }
 
@@ -43,7 +51,7 @@ document.getElementById("GoldeEventQueue").onsubmit = function() {
 }
 
 function dataValueParser(value) {
-    
+
     if (typeof value == "boolean") {
         return { "Boolesn": value };
     }

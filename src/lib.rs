@@ -126,6 +126,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
             }
         }
         &cx.props.children,
+        script { "var platform = \"{platform}\";" }
         script { [include_str!("./script/app.js")] }
     ))
 }
@@ -134,4 +135,9 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
 #[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
     fn WebAssemblyGetResult() -> String;
+}
+
+#[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
+fn WebAssemblyGetResult() -> String {
+    return String::new();
 }
