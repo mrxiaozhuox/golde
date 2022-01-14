@@ -11,7 +11,7 @@ fn app(cx: Scope) -> Element {
     cx.render(rsx!(
         App {
             trigger: trigger!(
-                jquery_test => |v| {
+                jquery_test => |_, v| {
                     println!("{:?}", v);
                 }
             ),

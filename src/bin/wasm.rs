@@ -25,7 +25,7 @@ fn app(cx: Scope) -> Element {
     cx.render(rsx!(
         App {
             trigger: trigger!(
-                test => move |v| {
+                test => move |_, v| {
                     setter(v.as_number().unwrap_or(0.0));
                 }
             ),
