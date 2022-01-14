@@ -4,7 +4,7 @@ use std::{
     hash::Hash,
 };
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct Map<K, V> {
     pub(crate) inner: HashMap<K, V>,
 }
