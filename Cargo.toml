@@ -5,7 +5,7 @@ edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
+[target.'cfg(all(target_arch = "wasm32", target_os = "unknown"))'.dependencies]
 dioxus = { git = "https://github.com/DioxusLabs/dioxus", features = ["web"] }
 fermi = { git = "https://github.com/dioxuslabs/fermi" }
 serde = { version = "1.0.126", features = ['derive'] }
