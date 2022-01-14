@@ -11,10 +11,10 @@ fn app(cx: Scope) -> Element {
     cx.render(rsx!(
         App {
             trigger: trigger!(
-                val_dict => | _, v | {
+                val_dict => |v| {
                     println!("{:?}", v);
                 },
-                val_list => | _, v | {
+                val_list => |v| {
                     println!("{:?}", v);
                 }
             ),

@@ -11,7 +11,7 @@ use fermi::{use_init_atom_root, use_read, use_set, Atom};
 // use once_cell::unsync::Lazy;
 
 pub type Value = DataValue;
-pub type Trigger = HashMap<String, Box<dyn Fn(&Scope<AppProps>, DataValue) -> ()>>;
+pub type Trigger = HashMap<String, Box<dyn Fn(DataValue) -> ()>>;
 
 #[macro_export]
 macro_rules! trigger {
@@ -71,7 +71,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
             if data.result != DataValue::None {
                 let callback = cx.props.trigger.get(name);
                 if let Some(fun) = callback {
-                    fun(&cx, data.result.clone());
+                    fun(data.result.clone());
                 }
                 need_reload_queue = true;
                 new_event_queue.inner.remove(name);
