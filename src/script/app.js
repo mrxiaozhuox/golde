@@ -44,7 +44,7 @@ setInterval(function() {
     }
 
 
-}, 200);
+}, 50);
 
 document.getElementById("GoldeEventQueue").onsubmit = function() {
     return false;
