@@ -26,8 +26,8 @@ fn app(cx: Scope) -> Element {
     
     let setter = use_set(&cx, RESULT).clone();
 
-    cx.use_hook(|_| {
-        log::info!("{:?}", cx.render(rsx!(p { "123" })));
+    use_once(&cx, || {
+        execute(&cx, "name", "alert(1)".into());
     });
 
     cx.render(rsx!(

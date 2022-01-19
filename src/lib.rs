@@ -22,6 +22,14 @@ macro_rules! trigger {
     }}
 }
 
+pub fn use_once(cx: &ScopeState, f: impl FnOnce()) {
+    let init = cx.use_hook(|_| true);
+    if *init {
+        f();
+        *init = false;
+    }
+}
+
 #[derive(Props)]
 pub struct AppProps<'a> {
     
