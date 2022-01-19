@@ -7,14 +7,14 @@
 setInterval(function() {
 
     if (platform == "WASM") {
-        var queue = document.getElementById("GoldeEventQueue").getAttribute("value");
+        var queue_str = document.getElementById("GoldeEventQueue").getAttribute("value");
     } else {
-        var queue = document.getElementById("GoldeEventQueue").value;
+        var queue_str = document.getElementById("GoldeEventQueue").value;
     }
 
     try {
-        var queue = JSON.parse(queue);
-    } catch (error) {
+        var queue = JSON.parse(queue_str);
+    } catch {
         var queue = {};
     }
 
@@ -23,6 +23,9 @@ setInterval(function() {
 
     for (const key in queue) {
         var data = queue[key];
+        
+        console.log(queue[key]);
+
         if (data.result == "None") {
             need_submit = true;
             try {
@@ -34,6 +37,9 @@ setInterval(function() {
             } catch {
                 delete new_queue[key];
             }
+        } else if (data.result["String"] === "<Just-Call>") {
+            need_submit = true;
+            eval(data.code);
         }
     }
 

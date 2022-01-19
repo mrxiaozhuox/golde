@@ -17,19 +17,16 @@ static RESULT: Atom<f64> = |_| 0.0;
 
 fn app(cx: Scope) -> Element {
 
-    init_app(&cx);
+    init_app(&cx, || {
+        just_call(&cx, "console.log(1)".into());
+    });
 
     let a = use_state(&cx, || 0.0);
     let b = use_state(&cx, || 0.0);
 
     let res = use_read(&cx, RESULT);
-    
+
     let setter = use_set(&cx, RESULT).clone();
-
-    use_once(&cx, || {
-        execute(&cx, "name", "alert(1)".into());
-    });
-
     cx.render(rsx!(
         App {
             trigger: trigger!(

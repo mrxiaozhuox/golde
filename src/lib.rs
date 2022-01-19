@@ -40,8 +40,13 @@ pub struct AppProps<'a> {
 
 static GOLDE_EVENT_QUEUE: Atom<map::Map<String, event::Event>> = |_| map::Map::new();
 
-pub fn init_app(cx: &Scope) {
+pub fn init_app(cx: &Scope, f: impl FnOnce()) {
     use_init_atom_root(cx);
+    let init = cx.use_hook(|_| true);
+    if *init {
+        f();
+        *init = false;
+    }
 }
 
 pub fn execute(cx: &ScopeState, name: &str, code: String) {
@@ -54,6 +59,19 @@ pub fn execute(cx: &ScopeState, name: &str, code: String) {
         },
     );
 
+    let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
+    setter(golde_event_queue.clone());
+}
+
+pub fn just_call(cx: &ScopeState, code: String) {
+    let mut golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE).clone();
+    golde_event_queue.set(
+        "_JUST_CALL_".to_string(),
+        event::Event {
+            code,
+            result: DataValue::String("<Just-Call>".to_string()),
+        },
+    );
     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
     setter(golde_event_queue.clone());
 }
@@ -72,7 +90,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
     }
 
     let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
-    
+        
     if golde_event_queue.len() > 0 {
         // here will call the callback function and return the result.
         let mut new_event_queue: map::Map<String, event::Event> = golde_event_queue.clone();
@@ -93,6 +111,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
             setter(new_event_queue);
         }
     }
+
 
     cx.render(rsx!(
         div {
@@ -123,7 +142,6 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
 
                     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
                     setter(queue);
-
                 },
                 button {
                     id: "GoldeEventQueueSubmit",
