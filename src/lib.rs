@@ -24,8 +24,10 @@ macro_rules! trigger {
 
 #[derive(Props)]
 pub struct AppProps<'a> {
+    
     children: Element<'a>,
     trigger: Trigger,
+
 }
 
 static GOLDE_EVENT_QUEUE: Atom<map::Map<String, event::Event>> = |_| map::Map::new();
@@ -34,7 +36,7 @@ pub fn init_app(cx: &Scope) {
     use_init_atom_root(cx);
 }
 
-pub fn execute(cx: &Scope, name: &str, code: String) {
+pub fn execute(cx: &ScopeState, name: &str, code: String) {
     let mut golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE).clone();
     golde_event_queue.set(
         name.to_string(),
@@ -51,13 +53,14 @@ pub fn execute(cx: &Scope, name: &str, code: String) {
 pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
 
     // check the runtime platform, now the `golde` just support WASM and Desktop
-    let wasm_runtime: bool;
-    if cfg!(any(target_arch = "wasm32", target_arch = "wasm64")) {
-        // runtime for wasm
-        wasm_runtime = true;
-    } else {
-        // default runtime
-        wasm_runtime = false;
+    let wasm_runtime = cfg!(any(target_arch = "wasm32", target_arch = "wasm64"));
+
+    let platform = format!("{}", if wasm_runtime { "WASM" } else { "Desktop" });
+
+    let initialized = use_state(&cx, || false);
+    if !*initialized.get() {
+        log::info!("Dioxus [Golde] Runtime Platform: {}", platform);
+        initialized.set(true);
     }
 
     let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
@@ -83,9 +86,6 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
         }
     }
 
-    let platform = format!("{}", if wasm_runtime { "WASM" } else { "Desktop" });
-    log::info!("Dioxus [Golde] Runtime Platform: {}", platform);
-
     cx.render(rsx!(
         div {
             id: "GoldeAppStatus",
@@ -96,10 +96,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
                 "value": "{golde_event_queue}",
                 onsubmit: move |data| {
 
-                    let mut queue = map::Map {
-                        inner: HashMap::new(),
-                    };
-
+                    let queue;
                     if !wasm_runtime {
                         queue = map::Map {
                             inner: serde_json::from_str::
@@ -113,6 +110,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
                             <HashMap<String, event::Event>>
                             (&r).unwrap()
                         };
+                        log::info!("NEW_: {}", queue);
                     }
 
                     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);

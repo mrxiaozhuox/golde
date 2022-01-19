@@ -1,3 +1,5 @@
+use std::panic;
+
 use dioxus::prelude::*;
 use fermi::prelude::*;
 use golde::*;
@@ -5,6 +7,8 @@ use golde::*;
 fn main() {
 
     wasm_logger::init(wasm_logger::Config::default());
+
+    panic::set_hook(Box::new(console_error_panic_hook::hook));
 
     dioxus::web::launch(app);
 }
@@ -21,6 +25,10 @@ fn app(cx: Scope) -> Element {
     let res = use_read(&cx, RESULT);
     
     let setter = use_set(&cx, RESULT).clone();
+
+    cx.use_hook(|_| {
+        log::info!("{:?}", cx.render(rsx!(p { "123" })));
+    });
 
     cx.render(rsx!(
         App {

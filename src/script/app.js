@@ -25,11 +25,15 @@ setInterval(function() {
         var data = queue[key];
         if (data.result == "None") {
             need_submit = true;
-            var result = eval(data.code);
-            new_queue[key] = {
-                code: data.code,
-                result: dataValueParser(result),
-            };
+            try {
+                var result = eval(data.code);
+                new_queue[key] = {
+                    code: data.code,
+                    result: dataValueParser(result),
+                };
+            } catch {
+                delete new_queue[key];
+            }
         }
     }
 
