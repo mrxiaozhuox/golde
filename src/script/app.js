@@ -24,7 +24,7 @@ setInterval(function() {
     for (const key in queue) {
         var data = queue[key];
         
-        console.log(queue[key]);
+        // console.log(queue[key]);
 
         if (data.result == "None") {
             need_submit = true;
@@ -39,7 +39,11 @@ setInterval(function() {
             }
         } else if (data.result["String"] === "<Just-Call>") {
             need_submit = true;
-            eval(data.code);
+            try {
+                eval(data.code);
+            } catch {
+                // error
+            }
         }
     }
 

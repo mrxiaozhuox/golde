@@ -164,7 +164,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
                             <HashMap<String, event::Event>>
                             (&r).unwrap()
                         };
-                        log::info!("NEW_: {}", queue);
+                        // log::info!("NEW_: {}", queue);
                     }
 
                     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
