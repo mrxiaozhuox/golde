@@ -59,3 +59,5 @@ fn app(cx: Scope) -> Element {
     ))
 }
 ```
+
+The `exec` function will not return the result, and `call` function can trigger the callback and get the result.
