@@ -17,9 +17,11 @@ static RESULT: Atom<f64> = |_| 0.0;
 
 fn app(cx: Scope) -> Element {
 
-    init_app(&cx, || {
-        just_call(&cx, "console.log(1)".into());
+    init_app(&cx, |initialized| {
+        exec_conditional(&cx, "console.log(1)".into(), !initialized);
     });
+
+
 
     let a = use_state(&cx, || 0.0);
     let b = use_state(&cx, || 0.0);
@@ -49,7 +51,7 @@ fn app(cx: Scope) -> Element {
             button {  
                 onclick: move |_| {
                     let code = format!("{} + {}", &a, &b);
-                    execute(&cx, "test", code.to_string());
+                    call(&cx, "test", code.to_string());
                 },
                 "Calc"
             }
