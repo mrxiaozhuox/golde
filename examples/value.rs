@@ -6,7 +6,7 @@ fn main() {
 }
 
 fn app(cx: Scope) -> Element {
-    init_app(&cx);
+    init_app(&cx, |_| {});
 
     cx.render(rsx!(
         App {
@@ -20,13 +20,13 @@ fn app(cx: Scope) -> Element {
             ),
             button {
                 onclick: move | _ | {
-                    execute( & cx, "val_dict", "value_type('dict')".to_string());
+                    call( & cx, "val_dict", "value_type('dict')".to_string());
                 },
                 "Javascript::Object => Rust::Dict"
             }
             button {
                 onclick: move | _ | {
-                    execute( & cx, "val_list", "value_type('list')".to_string());
+                    call( & cx, "val_list", "value_type('list')".to_string());
                 },
                 "Javascript::Array => Rust::List"
             }

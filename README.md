@@ -19,7 +19,11 @@ static RESULT: Atom<f64> = |_| 0.0;
 
 fn app(cx: Scope) -> Element {
 
-    init_app(&cx);
+    init_app(&cx, |initialized| {
+        // if you want to use `exec` or `call` in some conditional, you must pass the bool value for *_conditional;
+        // because in dioxus, any `hook-use` function cannot use in conditional.
+        exec_conditional(&cx, "console.log(1)".into(), !initialized);
+    });
 
     let a = use_state(&cx, || 0.0);
     let b = use_state(&cx, || 0.0);
@@ -59,3 +63,5 @@ fn app(cx: Scope) -> Element {
     ))
 }
 ```
+
+The `exec` function will not return the result, and `call` function can trigger the callback and get the result.

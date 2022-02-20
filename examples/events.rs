@@ -9,7 +9,7 @@ fn main() {
 static RESULT: Atom<f64> = |_| 0.0;
 
 fn app(cx: Scope) -> Element {
-    init_app(&cx);
+    init_app(&cx, |_| {});
 
     let (a, a_setter) = use_state(&cx, || 0.0);
     let (b, b_setter) = use_state(&cx, || 0.0);
@@ -40,7 +40,7 @@ fn app(cx: Scope) -> Element {
             button {
                 onclick: move |_| {
                     let code = format!("{} + {}", &a, &b);
-                    execute(&cx, "test", code);
+                    call(&cx, "test", code);
                 },
                 "Calc"
             }

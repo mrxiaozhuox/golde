@@ -6,7 +6,7 @@ fn main() {
 }
 
 fn app(cx: Scope) -> Element {
-    init_app(&cx);
+    init_app(&cx, |_| {});
 
     cx.render(rsx!(
         App {
@@ -17,7 +17,7 @@ fn app(cx: Scope) -> Element {
             ),
             button {
                 onclick: move |_| {
-                    execute(&cx, "jquery_test", "
+                    call(&cx, "jquery_test", "
                         if ($('#hello').text() == 'Hello World!') {
                             $('#hello').text('Hello Dioxus!');
                         } else {

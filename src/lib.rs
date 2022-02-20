@@ -22,21 +22,30 @@ macro_rules! trigger {
     }}
 }
 
+pub fn use_once(cx: &ScopeState, f: impl FnOnce()) {
+    let init = cx.use_hook(|_| true);
+    if *init {
+        f();
+        *init = false;
+    }
+}
+
 #[derive(Props)]
 pub struct AppProps<'a> {
-    
     children: Element<'a>,
     trigger: Trigger,
-
 }
 
 static GOLDE_EVENT_QUEUE: Atom<map::Map<String, event::Event>> = |_| map::Map::new();
 
-pub fn init_app(cx: &Scope) {
+pub fn init_app(cx: &Scope, f: impl Fn(bool)) {
     use_init_atom_root(cx);
+    let init = cx.use_hook(|_| false);
+    f(*init);
+    *init = true;
 }
 
-pub fn execute(cx: &ScopeState, name: &str, code: String) {
+pub fn call(cx: &ScopeState, name: &str, code: String) {
     let mut golde_event_queue = use_read(cx, GOLDE_EVENT_QUEUE).clone();
     golde_event_queue.set(
         name.to_string(),
@@ -50,8 +59,52 @@ pub fn execute(cx: &ScopeState, name: &str, code: String) {
     setter(golde_event_queue.clone());
 }
 
-pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
+pub fn call_conditional(cx: &ScopeState, name: &str, code: String, state: bool) {
+    let mut golde_event_queue = use_read(cx, GOLDE_EVENT_QUEUE).clone();
+    golde_event_queue.set(
+        name.to_string(),
+        event::Event {
+            code,
+            result: DataValue::None,
+        },
+    );
 
+    let setter = use_set(cx, GOLDE_EVENT_QUEUE);
+    if state {
+        setter(golde_event_queue.clone());
+    }
+}
+
+pub fn exec(cx: &ScopeState, code: String) {
+    let mut golde_event_queue = use_read(cx, GOLDE_EVENT_QUEUE).clone();
+    golde_event_queue.set(
+        "_JUST_CALL_".to_string(),
+        event::Event {
+            code,
+            result: DataValue::String("<Just-Call>".to_string()),
+        },
+    );
+    let setter = use_set(cx, GOLDE_EVENT_QUEUE);
+    setter(golde_event_queue.clone());
+}
+
+pub fn exec_conditional(cx: &ScopeState, code: String, state: bool) {
+    let mut golde_event_queue = use_read(cx, GOLDE_EVENT_QUEUE).clone();
+    golde_event_queue.set(
+        "_JUST_CALL_".to_string(),
+        event::Event {
+            code,
+            result: DataValue::String("<Just-Call>".to_string()),
+        },
+    );
+    let setter = use_set(cx, GOLDE_EVENT_QUEUE);
+
+    if state {
+        setter(golde_event_queue.clone());
+    }
+}
+
+pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
     // check the runtime platform, now the `golde` just support WASM and Desktop
     let wasm_runtime = cfg!(any(target_arch = "wasm32", target_arch = "wasm64"));
 
@@ -64,6 +117,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
     }
 
     let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
+    let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
     
     if golde_event_queue.len() > 0 {
         // here will call the callback function and return the result.
@@ -71,7 +125,7 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
         let mut need_reload_queue: bool = false;
 
         for (name, data) in &golde_event_queue.inner {
-            if data.result != DataValue::None {
+            if data.result != DataValue::None && data.result != DataValue::String("<Just-Call>".into()) {
                 let callback = cx.props.trigger.get(name);
                 if let Some(fun) = callback {
                     fun(data.code.clone(), data.result.clone());
@@ -81,10 +135,10 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
             }
         }
         if need_reload_queue {
-            let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
             setter(new_event_queue);
         }
     }
+
 
     cx.render(rsx!(
         div {
@@ -110,12 +164,11 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
                             <HashMap<String, event::Event>>
                             (&r).unwrap()
                         };
-                        log::info!("NEW_: {}", queue);
+                        // log::info!("NEW_: {}", queue);
                     }
 
                     let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
                     setter(queue);
-
                 },
                 button {
                     id: "GoldeEventQueueSubmit",
