@@ -11,9 +11,9 @@ pub struct Map<K, V> {
 
 impl<K: Eq + Hash, V> Map<K, V> {
     pub fn new() -> Map<K, V> {
-        return Map {
+        Map {
             inner: HashMap::new(),
-        };
+        }
     }
 
     pub fn set(&mut self, k: K, v: V) -> Option<V> {
@@ -21,7 +21,7 @@ impl<K: Eq + Hash, V> Map<K, V> {
     }
 
     pub fn get(&self, k: K) -> Option<&V> {
-        return self.inner.get(&k);
+        self.inner.get(&k)
     }
 
     pub fn len(&self) -> usize {
@@ -38,7 +38,7 @@ where
         write!(
             f,
             "{}",
-            serde_json::to_string(&self.inner).unwrap_or("{}".to_string())
+            serde_json::to_string(&self.inner).unwrap_or_else(|_| "{}".to_string())
         )
     }
 }

@@ -11,7 +11,7 @@ use fermi::{use_init_atom_root, use_read, use_set, Atom};
 // use once_cell::unsync::Lazy;
 
 pub type Value = DataValue;
-pub type Trigger = HashMap<String, Box<dyn Fn(String, DataValue) -> ()>>;
+pub type Trigger = HashMap<String, Box<dyn Fn(String, DataValue)>>;
 
 #[macro_export]
 macro_rules! trigger {
@@ -37,7 +37,7 @@ pub fn init_app(cx: &Scope) {
 }
 
 pub fn execute(cx: &ScopeState, name: &str, code: String) {
-    let mut golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE).clone();
+    let mut golde_event_queue = use_read(cx, GOLDE_EVENT_QUEUE).clone();
     golde_event_queue.set(
         name.to_string(),
         event::Event {
@@ -46,7 +46,7 @@ pub fn execute(cx: &ScopeState, name: &str, code: String) {
         },
     );
 
-    let setter = use_set(&cx, GOLDE_EVENT_QUEUE);
+    let setter = use_set(cx, GOLDE_EVENT_QUEUE);
     setter(golde_event_queue.clone());
 }
 
@@ -55,12 +55,12 @@ pub fn App<'a>(cx: Scope<'a, AppProps<'a>>) -> Element {
     // check the runtime platform, now the `golde` just support WASM and Desktop
     let wasm_runtime = cfg!(any(target_arch = "wasm32", target_arch = "wasm64"));
 
-    let platform = format!("{}", if wasm_runtime { "WASM" } else { "Desktop" });
+    let platform = (if wasm_runtime { "WASM" } else { "Desktop" }).to_string();
 
-    let initialized = use_state(&cx, || false);
-    if !*initialized.get() {
+    let (initialized, initialized_setter) = use_state(&cx, || false);
+    if !initialized {
         log::info!("Dioxus [Golde] Runtime Platform: {}", platform);
-        initialized.set(true);
+        initialized_setter(true);
     }
 
     let golde_event_queue = use_read(&cx, GOLDE_EVENT_QUEUE);
@@ -137,5 +137,5 @@ extern "C" {
 
 #[cfg(not(any(target_arch = "wasm32", target_arch = "wasm64")))]
 fn WebAssemblyGetResult() -> String {
-    return String::new();
+    String::new()
 }
