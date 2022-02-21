@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 use dioxus::prelude::*;
 use doson::DataValue;
-use fermi::{use_init_atom_root, use_read, use_set, Atom};
+use fermi::{use_read, use_set, Atom};
 // use once_cell::unsync::Lazy;
 
 pub type Value = DataValue;
@@ -39,7 +39,6 @@ pub struct AppProps<'a> {
 static GOLDE_EVENT_QUEUE: Atom<map::Map<String, event::Event>> = |_| map::Map::new();
 
 pub fn init_app(cx: &Scope, f: impl Fn(bool)) {
-    use_init_atom_root(cx);
     let init = cx.use_hook(|_| false);
     f(*init);
     *init = true;

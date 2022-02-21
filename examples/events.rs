@@ -40,6 +40,7 @@ fn app(cx: Scope) -> Element {
             button {
                 onclick: move |_| {
                     let code = format!("{} + {}", &a, &b);
+                    println!("{:?}", code);
                     call(&cx, "test", code);
                 },
                 "Calc"
